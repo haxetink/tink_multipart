@@ -17,10 +17,7 @@ class TestParsers {
 	
 	@:describe('Test Busboy parser')
 	public function busboy() {
-		var parser = new BusboyParser(new Header([
-			new HeaderField('Content-Type', 'multipart/form-data; boundary=----------287032381131322'),
-			new HeaderField('Content-Length', 514),
-		]));
+		var parser = new BusboyParser('multipart/form-data; boundary=----------287032381131322');
 		return parseWith(parser);
 	}
 	
