@@ -47,7 +47,7 @@ class BusboyParser implements Parser {
 			});
 		} catch(e:Dynamic) {
 			// busboy's constructor may throw js.Error
-			result.yield(Fail(new Error(e.message, e.data)));
+			result.yield(Fail(new Error(500, e.name + ': ' + e.message)));
 		}
 		return result;
 	}
