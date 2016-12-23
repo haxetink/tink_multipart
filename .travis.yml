@@ -16,4 +16,4 @@ install:
   - npm install busboy 
 
 script:
-  - haxelib run travix node
+  - haxelib run travix node -lib tink_unittest
