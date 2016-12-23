@@ -1,15 +1,7 @@
 package tink.multipart;
 
-import tink.io.Source;
-import tink.http.Header;
+import tink.http.StructuredBody;
 
-typedef Chunk = {
-	name:String,
-	body:ChunkBody,
-	?header:Header, // TODO: is this needed?
-}
+using tink.CoreApi;
 
-enum ChunkBody {
-	Field(value:String);
-	File(file:{filename:String, mimeType:String, content:Source});
-}
+typedef Chunk = Named<BodyPart>;

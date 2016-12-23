@@ -5,3 +5,4 @@ tests.hxml
 -lib travix
 -lib hxnodejs
 -lib tink_multipart
+-lib tink_unittest

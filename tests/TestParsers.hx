@@ -30,9 +30,9 @@ class TestParsers {
 	function parseWith(parser:Parser) {
 		var result = [];
 		return parser.parse(body).forEach(function(o) {
-			switch o.body {
-				case Field(v): result.push(o.name + ':$v');
-				case File(f): result.push(o.name + ':${f.filename}-${f.mimeType}');
+			switch o.value {
+				case Value(v): result.push(o.name + ':$v');
+				case File(f): result.push(o.name + ':${f.fileName}-${f.mimeType}');
 			}
 			return true;
 		}) >>

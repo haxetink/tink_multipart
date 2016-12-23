@@ -7,7 +7,7 @@ import tink.io.Source;
 import tink.io.Sink;
 import tink.streams.Stream;
 import tink.streams.Accumulator;
-import tink.http.Header;
+import tink.http.StructuredBody;
 
 using tink.CoreApi;
 
@@ -27,21 +27,13 @@ class BusboyParser implements Parser {
 				Source.ofNodeStream('File part: $filename', file).all() // HACK: needa comsume the file otherwise busboy wont fire the 'finish' event
 					.handle(function(o) switch o {
 						case Success(bytes):
-							result.yield(Data({
-								name: fieldname,
-								body: File({filename: filename, mimeType: mimetype, content: bytes}),
-								header: null // TODO: reconstruct it?
-							}));
+							result.yield(Data(new Named(fieldname, File(UploadedFile.ofBlob(filename, mimetype, bytes)))));
 						case Failure(e):
 							result.yield(Fail(e));
 					});
 			});
 			busboy.on('field', function(fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
-				result.yield(Data({
-					name: fieldname,
-					body: Field(val),
-					header: null // TODO: reconstruct it?
-				}));
+				result.yield(Data(new Named(fieldname, Value(val))));
 			});
 			busboy.on('finish', function() {
 				result.yield(End);

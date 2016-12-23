@@ -8,6 +8,7 @@ import tink.streams.StreamStep;
 import tink.io.IdealSource;
 import tink.io.Source;
 import tink.http.Header;
+import tink.http.StructuredBody;
 
 using tink.CoreApi;
 
@@ -32,30 +33,19 @@ class TinkParser implements Parser {
 					s = rest; 
 					switch chunk.data.byName('content-disposition') {
 						case Success(v):
-							var ext = v.getExtension();
-							switch [ext['name'], ext['filename']] {
-								case [name, null]:
-									chunk.rest.all().map(function(o) return switch o {
-										case Success(bytes):
-											Data({
-												name: name,
-												body: Field(bytes.toString()),
-												header: chunk.data
-											});
-										case Failure(e):
-											Fail(e);
-									});
-								case [name, filename]:
-									Future.sync(Data({
-										name: name, 
-										body: File({
-											filename: filename, 
-											mimeType: chunk.data.byName('content-type').orNull(),
-											content: chunk.rest,
-										}),
-										header: chunk.data,
-									}));
-							}
+							chunk.rest.all().map(function(o) return switch o {
+								case Success(bytes):
+									var ext = v.getExtension();
+									Data(new Named(
+										ext['name'],
+										switch ext['filename'] {
+											case null: Value(bytes.toString());
+											case filename: File(UploadedFile.ofBlob(filename, chunk.data.byName('content-type').orNull(), bytes));
+										}
+									));
+								case Failure(e):
+									Fail(e);
+							});
 						case Failure(e):
 							Future.sync(Fail(e));
 					}
