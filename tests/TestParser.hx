@@ -7,7 +7,7 @@ import tink.multipart.parsers.*;
 
 using tink.CoreApi;
 
-class TestParsers {
+class TestParser {
 	
 	var body:String;
 	
