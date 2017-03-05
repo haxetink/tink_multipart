@@ -9,7 +9,7 @@ using tink.CoreApi;
 @:forward
 abstract Multipart(MultipartBuilder) from MultipartBuilder {
 	
-	public static function check(r:IncomingRequest):Option<Pair<ContentType, Source>> {
+	public static function check(r:IncomingRequest):Option<Pair<MimeType, Source>> {
 		return switch [r.body, r.header.contentType()] {
 			case [Plain(src), Success(contentType)] if(contentType.type == 'multipart'):
 				Some(new Pair(contentType, src));
