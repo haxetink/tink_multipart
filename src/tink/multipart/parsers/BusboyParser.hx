@@ -37,7 +37,7 @@ class BusboyParser implements Parser {
 			busboy.on('finish', function() {
 				result.yield(End);
 			});
-			busboy.on('error', function(e) result.yield(Fail(Error.withData('Busboy errored', e))));
+			busboy.on('error', function(e:js.Error) result.yield(Fail(Error.withData(e.message, e))));
 			
 			source.pipeTo(Sink.ofNodeStream('Busboy', busboy)).handle(function(o) switch o {
 				case AllWritten: // ok
