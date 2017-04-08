@@ -2,13 +2,12 @@ package tink.multipart.parsers;
 
 import tink.multipart.Parser;
 import tink.multipart.Chunk;
-import tink.io.IdealSource;
-import tink.io.Source;
-import tink.io.Sink;
-import tink.streams.Stream;
+import tink.streams.RealStream;
 import tink.streams.Accumulator;
 import tink.http.StructuredBody;
 
+using tink.io.Sink;
+using tink.io.Source;
 using tink.CoreApi;
 
 @:require(nodejs)
@@ -19,8 +18,8 @@ class BusboyParser implements Parser {
 		this.contentType = contentType;
 	}
 	
-	public function parse(source:IdealSource):Stream<Chunk> {
-		var result = new Accumulator<Chunk>();
+	public function parse(source:IdealSource):RealStream<Chunk> {
+		var result = new Accumulator<Chunk, Error>();
 		try {
 			var busboy = new Busboy({headers: {'content-type': contentType}}); // busboy is only interested in the content-type header
 			busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
@@ -42,8 +41,8 @@ class BusboyParser implements Parser {
 			
 			source.pipeTo(Sink.ofNodeStream('Busboy', busboy)).handle(function(o) switch o {
 				case AllWritten: // ok
-				case SinkEnded: result.yield(Fail(new Error('Sink Ended')));
-				case SinkFailed(e): result.yield(Fail(e));
+				case SinkEnded(_): result.yield(Fail(new Error('Sink Ended')));
+				case SinkFailed(e, _): result.yield(Fail(e));
 			});
 		} catch(e:Dynamic) {
 			// busboy's constructor may throw js.Error

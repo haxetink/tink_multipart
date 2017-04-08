@@ -3,13 +3,11 @@ package tink.multipart.parsers;
 import haxe.io.Bytes;
 import tink.multipart.Parser;
 import tink.multipart.Chunk;
-import tink.streams.Stream;
-import tink.streams.StreamStep;
-import tink.io.IdealSource;
-import tink.io.Source;
+import tink.streams.RealStream;
 import tink.http.Header;
 import tink.http.StructuredBody;
 
+using tink.io.Source;
 using tink.CoreApi;
 
 class TinkParser implements Parser {
@@ -20,8 +18,8 @@ class TinkParser implements Parser {
 		this.boundary = boundary;
 	}
 	
-	public function parse(s:IdealSource):Stream<Chunk> {
-		var s = (s:Source).split(Bytes.ofString('--$boundary')).b;//TODO: make sure it's on its newline
+	public function parse(s:IdealSource):RealStream<Chunk> {
+		var s = s.split(Bytes.ofString('--$boundary')).b;//TODO: make sure it's on its newline
 		
 		var delim = Bytes.ofString('\r\n--$boundary');
 		
@@ -55,7 +53,7 @@ class TinkParser implements Parser {
 		});
 	}
 	 
-	function getChunk(s:Source, delim:Bytes):Surprise<Option<{ chunk:{ data: Header, rest: Source }, rest:Source }>, Error> {
+	function getChunk(s:IdealSource, delim:Bytes):Surprise<Option<{ chunk:{ data: Header, rest: IdealSource }, rest:IdealSource }>, Error> {
 
 		var split = s.split(delim);
 		

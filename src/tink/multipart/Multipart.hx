@@ -2,14 +2,14 @@ package tink.multipart;
 
 import tink.http.Header;
 import tink.http.Request;
-import tink.io.Source;
-import tink.io.IdealSource;
+
 using tink.CoreApi;
+using tink.io.Source;
 
 @:forward
 abstract Multipart(MultipartBuilder) from MultipartBuilder {
 	
-	public static function check(r:IncomingRequest):Option<Pair<MimeType, Source>> {
+	public static function check(r:IncomingRequest):Option<Pair<ContentType, RealSource>> {
 		return switch [r.body, r.header.contentType()] {
 			case [Plain(src), Success(contentType)] if(contentType.type == 'multipart'):
 				Some(new Pair(contentType, src));
@@ -59,7 +59,7 @@ private class MultipartBuilder {
 	}
 	
 	public function toIdealSource():IdealSource {
-		var body:IdealSource = Empty.instance;
+		var body = Source.EMPTY;
 		for(chunk in this.chunks) {
 			body = body.append('--$boundary\r\n');
 			switch chunk.value {
