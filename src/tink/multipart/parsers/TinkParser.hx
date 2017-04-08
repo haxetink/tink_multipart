@@ -4,8 +4,10 @@ import haxe.io.Bytes;
 import tink.multipart.Parser;
 import tink.multipart.Chunk;
 import tink.streams.RealStream;
+import tink.streams.Stream;
 import tink.http.Header;
 import tink.http.StructuredBody;
+import tink.io.StreamParser;
 
 using tink.io.Source;
 using tink.CoreApi;
@@ -19,45 +21,48 @@ class TinkParser implements Parser {
 	}
 	
 	public function parse(s:IdealSource):RealStream<Chunk> {
-		var s = s.split(Bytes.ofString('--$boundary')).b;//TODO: make sure it's on its newline
 		
 		var delim = Bytes.ofString('\r\n--$boundary');
 		
-		return Stream.generate(function ():Future<StreamStep<Chunk>> {
-			return getChunk(s, delim).flatMap(function (o) return switch o {
-				case Success(None): 
-					Future.sync(End);
-				case Success(Some( { chunk: chunk, rest: rest } )): 
-					s = rest; 
-					switch chunk.data.byName('content-disposition') {
-						case Success(v):
-							chunk.rest.all().map(function(o) return switch o {
-								case Success(bytes):
+		var result:Promise<RealStream<Chunk>> = s.parse(new Splitter('--$boundary')).next(function(p) {
+			var s = p.b; //TODO: make sure it's on its newline
+			var stream:RealStream<Chunk> = Generator.stream(function next(step:Step<Chunk, Error>->Void) {
+				getChunk(s, delim).handle(function (o) switch o {
+					case Success(None): 
+						step(End);
+					case Success(Some( { chunk: chunk, rest: rest } )): 
+						s = rest; 
+						switch chunk.a.byName('content-disposition') {
+							case Success(v):
+								chunk.b.all().handle(function(bytes) {
 									var ext = v.getExtension();
-									Data(new Named(
+									step(Link(new Named(
 										ext['name'],
 										switch ext['filename'] {
 											case null: Value(bytes.toString());
-											case filename: File(UploadedFile.ofBlob(filename, chunk.data.byName('content-type').orNull(), bytes));
+											case filename: File(UploadedFile.ofBlob(filename, chunk.a.byName('content-type').orNull(), bytes));
 										}
-									));
-								case Failure(e):
-									Fail(e);
-							});
-						case Failure(e):
-							Future.sync(Fail(e));
-					}
-				case Failure(e):
-					Future.sync(Fail(e));
+									), Generator.stream(next)));
+								});
+							case Failure(e):
+								step(Fail(e));
+						}
+					case Failure(e):
+						step(Fail(e));
+				});
 			});
+			return stream;
 		});
+		
+		return (Stream.promise(cast result):Stream<Chunk, Error>);
 	}
 	 
-	function getChunk(s:IdealSource, delim:Bytes):Surprise<Option<{ chunk:{ data: Header, rest: IdealSource }, rest:IdealSource }>, Error> {
+	function getChunk(s:IdealSource, delim:Bytes):Surprise<Option<{ chunk:Pair<Header, IdealSource>, rest:IdealSource }>, Error> {
 
-		var split = s.split(delim);
+		var split = s.parse(new Splitter(delim));
 		
-		return split.a.parse(new HeaderParser(function (line, fields) {
+		return s.parse(new Splitter(delim)).next(function(split)
+			return split.a.parse(new HeaderParser(function (line, fields) {
 				return
 					Success(
 						if (line == '--') null
@@ -66,14 +71,13 @@ class TinkParser implements Parser {
 							new Header(fields);
 						}
 					);
-			}))
-				>> 
-				function (o:{ data: Header, rest: Source }) 
-					return 
-					if (o.data == null) None
-					else Some({ 
-						chunk: o,
-						rest: split.b,
-					});
+			})).next(function (o) return 
+				if (o.a == null) None
+				else Some({ 
+					chunk: o,
+					rest: split.b,
+				})
+			)
+		);
 	}
 }
