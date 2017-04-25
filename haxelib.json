@@ -13,7 +13,6 @@
 	"releasenote": "Catch up tink_http api",
 	"version": "0.2.1",
 	"dependencies": {
-		"tink_streams": "",
 		"tink_http": ""
 	}
 }
