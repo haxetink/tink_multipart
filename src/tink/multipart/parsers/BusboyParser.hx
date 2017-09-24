@@ -5,6 +5,7 @@ import tink.multipart.Chunk;
 import tink.streams.RealStream;
 import tink.streams.Stream;
 import tink.http.StructuredBody;
+import tink.state.State;
 
 using tink.io.Sink;
 using tink.io.Source;
@@ -21,12 +22,15 @@ class BusboyParser implements Parser {
 	public function parse(source:IdealSource):RealStream<Chunk> {
 		var trigger = Signal.trigger();
 		var result = new SignalStream(trigger);
+		var filesInProgress = new State(0);
 		try {
 			var busboy = new Busboy({headers: {'content-type': contentType}}); // busboy is only interested in the content-type header
 			busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+				filesInProgress.set(filesInProgress.value + 1);
 				Source.ofNodeStream('File part: $filename', file).all() // HACK: needa comsume the file otherwise busboy wont fire the 'finish' event
 					.handle(function(o) switch o {
 						case Success(bytes):
+							filesInProgress.set(filesInProgress.value - 1);
 							trigger.trigger(Data(new Named(fieldname, File(UploadedFile.ofBlob(filename, mimetype, bytes)))));
 						case Failure(e):
 							trigger.trigger(Fail(e));
@@ -36,7 +40,7 @@ class BusboyParser implements Parser {
 				trigger.trigger(Data(new Named(fieldname, Value(val))));
 			});
 			busboy.on('finish', function() {
-				trigger.trigger(End);
+				filesInProgress.observe().nextTime(function(v) return v == 0).handle(trigger.trigger.bind(End));
 			});
 			busboy.on('error', function(e:js.Error) trigger.trigger(Fail(Error.withData(e.message, e))));
 			
