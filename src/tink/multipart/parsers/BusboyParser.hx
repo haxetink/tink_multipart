@@ -40,8 +40,7 @@ class BusboyParser implements Parser {
 				trigger.trigger(Data(new Named(fieldname, Value(val))));
 			});
 			busboy.on('finish', function() {
-				// TODO: investigate why we need hires=true here, otherwise the binding won't trigger
-				filesInProgress.observe().nextTime({hires: true}, function(v) return v == 0)
+				filesInProgress.observe().nextTime(function(v) return v == 0)
 					.handle(trigger.trigger.bind(End));
 			});
 			busboy.on('error', function(e:js.Error) trigger.trigger(Fail(Error.withData(e.message, e))));
