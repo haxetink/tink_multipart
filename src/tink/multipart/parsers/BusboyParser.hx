@@ -30,8 +30,8 @@ class BusboyParser implements Parser {
 				Source.ofNodeStream('File part: $filename', file).all() // HACK: needa comsume the file otherwise busboy wont fire the 'finish' event
 					.handle(function(o) switch o {
 						case Success(bytes):
-							filesInProgress.set(filesInProgress.value - 1);
 							trigger.trigger(Data(new Named(fieldname, File(UploadedFile.ofBlob(filename, mimetype, bytes)))));
+							filesInProgress.set(filesInProgress.value - 1);
 						case Failure(e):
 							trigger.trigger(Fail(e));
 					});
