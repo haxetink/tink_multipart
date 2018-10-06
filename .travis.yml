@@ -1,19 +1,45 @@
 sudo: required
 dist: trusty
 
-language: haxe
+stages:
+  - test
+  - deploy
+
+language: node_js
+node_js: 8
+
+cache:
+  directories:
+    - $HOME/haxe
 
 os:
   - linux
-  
-haxe:
-  - "3.4.0-rc.1"
-    
-install:
-  - haxelib install travix
-  - haxelib run travix install
-  - haxelib git tink_unittest https://github.com/kevinresol/tink_unittest
-  - npm install busboy 
+  # - osx
 
+env:
+  - HAXE_VERSION=3.4.7
+  - HAXE_VERSION=latest
+  
+install:
+  - npm i -g lix
+  - lix install haxe $HAXE_VERSION
+  - lix download
+  
 script:
-  - haxelib run travix node -lib tink_unittest
+  - lix run travix node
+
+# jobs:
+#   include:
+#     # - stage: test # should uncomment this when there is no matrix above (e.g. only one os, one env, etc)
+#     - stage: deploy
+#       language: haxe
+#       haxe: "3.4.7"
+#       os: linux
+#       install: skip
+#       script: skip
+#       env:
+#         secure: <TODO>
+#       after_success:
+#         - haxelib install travix
+#         - haxelib run travix install
+#         - haxelib run travix release

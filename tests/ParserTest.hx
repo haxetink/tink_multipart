@@ -30,6 +30,8 @@ class ParserTest {
 		return parseWith(parser, asserts);
 	}
 	
+	
+	@:exclude // pretty sure it is https://github.com/haxetink/tink_http/issues/97
 	@:describe('Test Tink parser')
 	@:variant(target.body)
 	@:variant(target.body + '\r\n')
