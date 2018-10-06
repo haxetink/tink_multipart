@@ -22,6 +22,7 @@ env:
   
 install:
   - npm i -g lix
+  - npm i busboy
   - lix install haxe $HAXE_VERSION
   - lix download
   
