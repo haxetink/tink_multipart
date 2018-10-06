@@ -29,18 +29,18 @@ install:
 script:
   - lix run travix node
 
-# jobs:
-#   include:
-#     # - stage: test # should uncomment this when there is no matrix above (e.g. only one os, one env, etc)
-#     - stage: deploy
-#       language: haxe
-#       haxe: "3.4.7"
-#       os: linux
-#       install: skip
-#       script: skip
-#       env:
-#         secure: <TODO>
-#       after_success:
-#         - haxelib install travix
-#         - haxelib run travix install
-#         - haxelib run travix release
+jobs:
+  include:
+    # - stage: test # should uncomment this when there is no matrix above (e.g. only one os, one env, etc)
+    - stage: deploy
+      language: haxe
+      haxe: "3.4.7"
+      os: linux
+      install: skip
+      script: skip
+      env:
+        secure: E5DINExjZq5W1l625jJdU1BP8NS2605Gk4idS/MSbnV2IHhbwolakv2zWkPzVVc00VJJXJrBt2NTQA11enMtsLHBGh6H1yZ+vmmrRqckE7AybC4K01Ud/ULydJ7RlTpLomLoCz1eA9RZmVAUFXnEyQjJ8TNRX8cq3LZDrTGXO6bAoiDNWSeVKmYIVd4wmTQXfDPeTP5zm/ghY3K1YhFU8ojM0lqGKUxIhWNd0u0TFDVlv0LWLgo+Pi3cJFUfBGo8Ui38xSFMw2RGEOuvxsIXWo140rxOtetSS4Weck5Sak6W28kdvjccVKtgkYZB6zCnWca1kBMC7oaGccukPVauZag08ySBOIQgQs2ZDnxuiLFAEHBFKddFrGNI7YL3RfMVZB9FQ64yOA+qWeELVt3lKI4/BIx3NG9x4hJzh/AzDfHwqdH1gGu2ufqJ3gTzYqECKQL76TJPW9GAtsFisbe940IVeeBIZp35s4Jtl/oIj7bGPAaDaUZp4bg30CjusJ/haz4GDnRGD0jl33mjCr2DHTw4TgMwuB8aL9PmLijXjakao7yQ4vaqvFfrNuftgJiUY2YSenpJV/yi+mx4WFPVemIrJPh5Hf59A0UqL3L3zV+5tVYmY2v5GwF7iAtXoy4mi6dRQRFymg+6PysLfnPOMJ2PS7SZj2T3g04phgHmuVw=
+      after_success:
+        - haxelib install travix
+        - haxelib run travix install
+        - haxelib run travix release

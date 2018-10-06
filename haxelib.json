@@ -10,8 +10,8 @@
 		"kevinresol",
 		"back2dos"
 	],
-	"releasenote": "Catch up tink_http api",
-	"version": "0.2.1",
+	"releasenote": "Merge pure branch",
+	"version": "0.3.0",
 	"dependencies": {
 		"tink_http": "",
 		"tink_state": ""
