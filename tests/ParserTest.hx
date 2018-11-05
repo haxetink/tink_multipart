@@ -1,7 +1,7 @@
 package;
 
 import tink.multipart.Parser;
-import tink.multipart.Chunk;
+import tink.multipart.Parsed;
 import tink.multipart.parsers.*;
 import tink.http.Header;
 import tink.http.StructuredBody;
@@ -43,7 +43,7 @@ class ParserTest {
 	
 	function parseWith(parser:Parser, asserts:AssertionBuffer) {
 		var result = [];
-		return parser.parse(body).forEach(function(o:Chunk) {
+		return parser.parse(body).forEach(function(o:Parsed) {
 			switch o.value {
 				case Value(v): result.push(o.name + ':$v');
 				case File(f): result.push(o.name + ':${f.fileName}-${f.mimeType}');

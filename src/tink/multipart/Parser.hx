@@ -5,5 +5,5 @@ import tink.streams.RealStream;
 using tink.CoreApi;
 
 interface Parser {
-	function parse(source:IdealSource):RealStream<Chunk>;
+	function parse(source:IdealSource):RealStream<Parsed>;
 }

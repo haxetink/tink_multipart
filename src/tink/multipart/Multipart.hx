@@ -7,7 +7,11 @@ using tink.CoreApi;
 using tink.io.Source;
 
 @:forward
-abstract Multipart(MultipartBuilder) from MultipartBuilder {
+abstract Multipart(Pair<Boundary, Array<Part>>) from Pair<Boundary, Array<Part>> {
+	static var ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	
+	public var boundary(get, never):Boundary;
+	public var parts(get, never):Array<Part>;
 	
 	public static function check(r:IncomingRequest):Option<Pair<ContentType, RealSource>> {
 		return switch [r.body, r.header.contentType()] {
@@ -18,66 +22,67 @@ abstract Multipart(MultipartBuilder) from MultipartBuilder {
 		}
 	}
 	
-	public inline function new(?boundary)
-		this = new MultipartBuilder(boundary);
+	public inline function new(?boundary, ?parts) {
+		this = new Pair(
+			boundary == null ? makeBoundary() : boundary,
+			parts == null ? [] : parts
+		);
+	}
 		
+	static function makeBoundary():Boundary {
+		var buf = new StringBuf();
+		buf.add('--------------------');
+		for(i in 0...20) buf.addChar(ALPHABETS.charCodeAt(Std.random(ALPHABETS.length)));
+		return buf.toString();
+	}
+	
+	public inline function addPart(part:Part) {
+		parts.push(part);
+	}
+	
+	public inline function addValue(name:String, value:String) {
+		addPart(new Part(
+			new Header([
+				new HeaderField(CONTENT_DISPOSITION, 'form-data; name="$name"')
+			]),
+			value
+		));
+	}
+	
+	public inline function addFile(name:String, filename:String, mimeType:String, content:IdealSource) {
+		addPart(new Part(
+			new Header([
+				new HeaderField(CONTENT_DISPOSITION, 'form-data; name="$name"; filename="$filename"'),
+				new HeaderField(CONTENT_TYPE, mimeType),
+			]),
+			content
+		));
+	}
+	
 	@:to
-	public function toIdealSource():IdealSource
-		return this.toIdealSource();
+	public function toIdealSource():IdealSource {
+		var body = Source.EMPTY;
+		var boundary = this.a;
+		for(part in parts) {
+			body = body
+				.append('--$boundary\r\n')
+				.append(part.header.toString())
+				.append(part.body)
+				.append('\r\n');
+		}
+		return body.append('--$boundary--');
+	}
+	
+	inline function get_boundary() return this.a;
+	inline function get_parts() return this.b;
 }
 
 abstract Boundary(String) from String to String {
 	@:to
+	public inline function asHeaderField():HeaderField
+		return new HeaderField(CONTENT_TYPE, asHeaderValue());
+		
+	@:to
 	public inline function asHeaderValue():HeaderValue
 		return 'multipart/form-data; boundary=$this';
-}
-	
-private class MultipartBuilder {
-	static var ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	
-	public var boundary(default, null):Boundary;
-	var chunks:Array<Named<ChunkType>>;
-	
-	public function new(?boundary) {
-		this.boundary = switch boundary {
-			case null:
-				var buf = new StringBuf();
-				buf.add('--------------------');
-				for(i in 0...20) buf.addChar(ALPHABETS.charCodeAt(Std.random(ALPHABETS.length)));
-				buf.toString();
-			case v: v;
-		}
-		chunks = [];
-	}
-	
-	public function addValue(name:String, value:String) {
-		chunks.push(new Named(name, Value(value)));
-	}
-	
-	public function addFile(name:String, filename:String, mimeType:String, content:IdealSource) {
-		chunks.push(new Named(name, File(filename, mimeType, content)));
-	}
-	
-	public function toIdealSource():IdealSource {
-		var body = Source.EMPTY;
-		for(chunk in this.chunks) {
-			body = body.append('--$boundary\r\n');
-			switch chunk.value {
-				case Value(v):
-					body = body.append('Content-Disposition: form-data; name="${chunk.name}"\r\n\r\n$v');
-				case File(filename, mime, content):
-					body = body
-						.append('Content-Disposition: form-data; name="${chunk.name}"; filename="$filename"\r\nContent-Type: $mime\r\n\r\n')
-						.append(content);
-			}
-			body = body.append('\r\n');
-		}
-		body = body.append('--$boundary--');
-		return body;
-	}
-}
-
-private enum ChunkType {
-	Value(v:String);
-	File(filename:String, mimeType:String, content:IdealSource);
 }

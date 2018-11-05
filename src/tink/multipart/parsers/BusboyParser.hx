@@ -1,7 +1,7 @@
 package tink.multipart.parsers;
 
 import tink.multipart.Parser;
-import tink.multipart.Chunk;
+import tink.multipart.Parsed;
 import tink.streams.RealStream;
 import tink.streams.Stream;
 import tink.http.StructuredBody;
@@ -19,7 +19,7 @@ class BusboyParser implements Parser {
 		this.contentType = contentType;
 	}
 	
-	public function parse(source:IdealSource):RealStream<Chunk> {
+	public function parse(source:IdealSource):RealStream<Parsed> {
 		var trigger = Signal.trigger();
 		var result = new SignalStream(trigger);
 		var filesInProgress = new State(0);

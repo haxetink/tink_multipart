@@ -2,7 +2,7 @@ package tink.multipart.parsers;
 
 import haxe.io.Bytes;
 import tink.multipart.Parser;
-import tink.multipart.Chunk;
+import tink.multipart.Parsed;
 import tink.streams.RealStream;
 import tink.streams.Stream;
 import tink.http.Header;
@@ -20,7 +20,7 @@ class TinkParser implements Parser {
 		this.boundary = boundary;
 	}
 	
-	public function parse(src:IdealSource):RealStream<Chunk> {
+	public function parse(src:IdealSource):RealStream<Parsed> {
 		
 		var split = src.split('--$boundary');
 		
@@ -28,7 +28,7 @@ class TinkParser implements Parser {
 			var s = split.after;
 			var delim:tink.Chunk = '\r\n--$boundary';
 			
-			var stream:RealStream<Chunk> = Generator.stream(function next(step:Step<Chunk, Error>->Void) {
+			var stream:RealStream<Parsed> = Generator.stream(function next(step:Step<Parsed, Error>->Void) {
 				getChunk(s, delim).handle(function (o) switch o {
 					case Success(None): 
 						step(End);
@@ -86,7 +86,7 @@ class TinkParser implements Parser {
 		// 	return stream;
 		// });
 		
-		return (Stream.promise(cast result):Stream<Chunk, Error>);
+		return (Stream.promise(cast result):Stream<Parsed, Error>);
 	}
 	 
 	function getChunk(s:IdealSource, delim:tink.Chunk):Surprise<Option<{ chunk:Pair<Header, IdealSource>, rest:IdealSource }>, Error> {

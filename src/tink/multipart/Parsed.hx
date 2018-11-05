@@ -4,4 +4,4 @@ import tink.http.StructuredBody;
 
 using tink.CoreApi;
 
-typedef Chunk = Named<BodyPart>;
+typedef Parsed = Named<BodyPart>;
