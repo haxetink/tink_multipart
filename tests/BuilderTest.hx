@@ -7,6 +7,7 @@ import tink.unit.Assert.*;
 using tink.io.Source;
 using tink.CoreApi;
 
+@:asserts
 class BuilderTest {
 	public function new() {}
 	
@@ -22,7 +23,8 @@ class BuilderTest {
 	@:describe('Convert boundary to a content-type header value')
 	public function testHeaderValue() {
 		var m = new Multipart();
-		var field = new HeaderField('content-type', m.boundary);
-		return assert('multipart/form-data; boundary=${m.boundary}' == field.value);
+		asserts.assert(m.getContentTypeHeader().value == 'multipart/mixed; boundary=${m.boundary}');
+		asserts.assert(m.getContentTypeHeader('form-data').value == 'multipart/form-data; boundary=${m.boundary}');
+		return asserts.done();
 	}
 }

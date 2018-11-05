@@ -7,10 +7,10 @@ using tink.CoreApi;
 using tink.io.Source;
 
 @:forward
-abstract Multipart(Pair<Boundary, Array<Part>>) from Pair<Boundary, Array<Part>> {
+abstract Multipart(Pair<String, Array<Part>>) from Pair<String, Array<Part>> {
 	static var ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	
-	public var boundary(get, never):Boundary;
+	public var boundary(get, never):String;
 	public var parts(get, never):Array<Part>;
 	
 	public static function check(r:IncomingRequest):Option<Pair<ContentType, RealSource>> {
@@ -28,8 +28,12 @@ abstract Multipart(Pair<Boundary, Array<Part>>) from Pair<Boundary, Array<Part>>
 			parts == null ? [] : parts
 		);
 	}
+	
+	public inline function getContentTypeHeader(subtype = 'mixed') {
+		return new HeaderField(CONTENT_TYPE, 'multipart/$subtype; boundary=$boundary');
+	}
 		
-	static function makeBoundary():Boundary {
+	static function makeBoundary() {
 		var buf = new StringBuf();
 		buf.add('--------------------');
 		for(i in 0...20) buf.addChar(ALPHABETS.charCodeAt(Std.random(ALPHABETS.length)));
@@ -75,14 +79,4 @@ abstract Multipart(Pair<Boundary, Array<Part>>) from Pair<Boundary, Array<Part>>
 	
 	inline function get_boundary() return this.a;
 	inline function get_parts() return this.b;
-}
-
-abstract Boundary(String) from String to String {
-	@:to
-	public inline function asHeaderField():HeaderField
-		return new HeaderField(CONTENT_TYPE, asHeaderValue());
-		
-	@:to
-	public inline function asHeaderValue():HeaderValue
-		return 'multipart/form-data; boundary=$this';
 }
