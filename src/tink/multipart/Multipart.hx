@@ -11,7 +11,14 @@ abstract Multipart(Pair<String, Array<Part>>) from Pair<String, Array<Part>> {
 	static var ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	
 	public var boundary(get, never):String;
-	public var parts(get, never):Array<Part>;
+	inline function get_boundary() return this.a;
+		
+	static function makeBoundary() {
+		var buf = new StringBuf();
+		buf.add('--------------------');
+		for(i in 0...20) buf.addChar(ALPHABETS.charCodeAt(Std.random(ALPHABETS.length)));
+		return buf.toString();
+	}
 	
 	public static function check(r:IncomingRequest):Option<Pair<ContentType, RealSource>> {
 		return switch [r.body, r.header.contentType()] {
@@ -29,45 +36,23 @@ abstract Multipart(Pair<String, Array<Part>>) from Pair<String, Array<Part>> {
 		);
 	}
 	
-	public inline function getContentTypeHeader(subtype = 'mixed') {
-		return new HeaderField(CONTENT_TYPE, 'multipart/$subtype; boundary=$boundary');
+	public inline function iterator() {
+		return this.b.iterator();
 	}
 		
-	static function makeBoundary() {
-		var buf = new StringBuf();
-		buf.add('--------------------');
-		for(i in 0...20) buf.addChar(ALPHABETS.charCodeAt(Std.random(ALPHABETS.length)));
-		return buf.toString();
+	public inline function concat(parts) {
+		return new Multipart(this.a, this.b.concat(parts));
 	}
 	
-	public inline function addPart(part:Part) {
-		parts.push(part);
-	}
-	
-	public inline function addValue(name:String, value:String) {
-		addPart(new Part(
-			new Header([
-				new HeaderField(CONTENT_DISPOSITION, 'form-data; name="$name"')
-			]),
-			value
-		));
-	}
-	
-	public inline function addFile(name:String, filename:String, mimeType:String, content:IdealSource) {
-		addPart(new Part(
-			new Header([
-				new HeaderField(CONTENT_DISPOSITION, 'form-data; name="$name"; filename="$filename"'),
-				new HeaderField(CONTENT_TYPE, mimeType),
-			]),
-			content
-		));
+	public inline function getContentTypeHeader(subtype = 'mixed') {
+		return new HeaderField(CONTENT_TYPE, 'multipart/$subtype; boundary=${this.a}');
 	}
 	
 	@:to
 	public function toIdealSource():IdealSource {
 		var body = Source.EMPTY;
 		var boundary = this.a;
-		for(part in parts) {
+		for(part in this.b) {
 			body = body
 				.append('--$boundary\r\n')
 				.append(part.header.toString())
@@ -76,7 +61,4 @@ abstract Multipart(Pair<String, Array<Part>>) from Pair<String, Array<Part>> {
 		}
 		return body.append('--$boundary--');
 	}
-	
-	inline function get_boundary() return this.a;
-	inline function get_parts() return this.b;
 }
