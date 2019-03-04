@@ -22,9 +22,9 @@ class ParserTest {
 	}
 	
 	@:describe('Test Busboy parser')
-	@:variant(target.body)
-	@:variant(target.body + '\r\n')
-	@:variant(target.body + '\r\nrubbish')
+	@:variant(this.body)
+	@:variant(this.body + '\r\n')
+	@:variant(this.body + '\r\nrubbish')
 	public function busboy(body:String) {
 		var parser = new BusboyParser('multipart/form-data; boundary=----------287032381131322');
 		return parseWith(parser, asserts);
@@ -32,9 +32,9 @@ class ParserTest {
 	
 	
 	@:describe('Test Tink parser')
-	@:variant(target.body)
-	@:variant(target.body + '\r\n')
-	@:variant(target.body + '\r\nrubbish')
+	@:variant(this.body)
+	@:variant(this.body + '\r\n')
+	@:variant(this.body + '\r\nrubbish')
 	public function tinkParser(body:String) {
 		var parser = new TinkParser('----------287032381131322');
 		return parseWith(parser, asserts);
