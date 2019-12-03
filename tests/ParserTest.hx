@@ -21,6 +21,8 @@ class ParserTest {
 		body = '------------287032381131322\r\nContent-Disposition: form-data; name="datafile1"; filename="r.gif"\r\nContent-Type: image/gif\r\n\r\nGIF87a.............,...........D..;\r\n------------287032381131322\r\nContent-Disposition: form-data; name="datafile2"; filename="g.gif"\r\nContent-Type: image/gif\r\n\r\nGIF87a.............,...........D..;\r\n------------287032381131322\r\nContent-Disposition: form-data; name="datafile3"; filename="b.gif"\r\nContent-Type: image/gif\r\n\r\nGIF87a.............,...........D..;\r\n------------287032381131322--';
 	}
 	
+	#if hxnodejs
+
 	@:describe('Test Busboy parser')
 	@:variant(this.body)
 	@:variant(this.body + '\r\n')
@@ -29,7 +31,8 @@ class ParserTest {
 		var parser = new BusboyParser('multipart/form-data; boundary=----------287032381131322');
 		return parseWith(parser, asserts);
 	}
-	
+
+	#end
 	
 	@:describe('Test Tink parser')
 	@:variant(this.body)

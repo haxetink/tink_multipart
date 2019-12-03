@@ -1,4 +1,4 @@
 {
-  "version": "custom",
+  "version": "4.0.3",
   "resolveLibs": "scoped"
 }
