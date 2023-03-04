@@ -43,7 +43,7 @@ class BusboyParser implements Parser {
 				filesInProgress.observe().nextTime(function(v) return v == 0)
 					.handle(trigger.trigger.bind(End));
 			});
-			busboy.on('error', function(e:js.Error) trigger.trigger(Fail(Error.withData(e.message, e))));
+			busboy.on('error', function(e:js.lib.Error) trigger.trigger(Fail(Error.withData(e.message, e))));
 			
 			source.pipeTo(Sink.ofNodeStream('Busboy', busboy)).handle(function(o) switch o {
 				case AllWritten: // ok
